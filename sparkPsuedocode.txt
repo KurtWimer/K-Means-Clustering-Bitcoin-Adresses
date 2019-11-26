@@ -1,0 +1,38 @@
+data = open file from s3 load into rdd
+pairData = data.split(", ") key = address (3rd item)
+pairData.reduceByKey(joinfunc)
+depending upon how much this reduces we may want to write pairData out to s3 and split the program here
+
+while(not clustered){
+	pairData.flatMap(shiftFunc)
+}
+
+
+
+def joinfunc{
+	inputs either "input"/"output", timestamp, val
+	returns out key = key, value = inputTotal, ouputTotal
+	if we want to do a specific timeperiod a grouping should happen before this
+		function or timestamp needs to be preserved somehow
+}
+
+def shiftFunc{
+	tempValues = values
+	find neighbors within defined distance using euclidean distance
+	forEach(neighbor){
+		weight = guassianKernalFunct(distance, bandwidth)
+		forEach(i in values.length){
+			tempValues += neighbor.value[i] * wieght
+		}
+	}
+}
+
+def guassianKernalFunc{
+	use already built kernals from mlib
+	https://spark.apache.org/docs/2.2.1/api/java/org/apache/spark/mllib/stat/KernelDensity.html
+}
+
+def notClustered{
+	what do we need for this old and new point locations
+	can we pull out points that have stopped moving?
+}
