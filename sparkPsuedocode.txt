@@ -1,17 +1,21 @@
-data = open file from s3 load into rdd
-pairData = data.split(", ") key = address (3rd item)
-pairData.reduceByKey(joinfunc)
-depending upon how much this reduces we may want to write pairData out to s3 and split the program here
+main{
+	data = open file from s3 load into rdd
+	pairData = data.split(", ") key = address (3rd item)
+	pairData.reduceByKey(joinfunc)
+	depending upon how much this reduces we may want to write pairData out to s3 and split the program here
 
-while(not clustered){
-	pairData.flatMap(shiftFunc)
+	while(not clustered){
+		pairData.flatMap(shiftFunc)
+	}
+
+	write clusters to file
+	write key pair adress and cluster to file
 }
-
 
 
 def joinfunc{
 	inputs either "input"/"output", timestamp, val
-	returns out key = key, value = inputTotal, ouputTotal
+	returns out key = key, value = inputTotal, ouputTotal, numTransactions
 	if we want to do a specific timeperiod a grouping should happen before this
 		function or timestamp needs to be preserved somehow
 }
