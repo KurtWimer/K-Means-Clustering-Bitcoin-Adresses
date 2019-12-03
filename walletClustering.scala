@@ -1,3 +1,6 @@
+//small test String
+//val x = sc.parallelize(Array(("a", "input, 12:00:00, 1"),("a", "output, 12:01:01, 2"),("b", "input, 12:00:32, 3"))
+
 object walletClustering{
 	def main(args: Array[String]): Unit = {
 		/*data = open file from s3 load into rdd
@@ -14,15 +17,16 @@ object walletClustering{
 		*/
 	}
 }
+
 //inputs either "input"/"output", timestamp, val
 //returns out key = key, value = inputTotal, ouputTotal, numTransactions
 def joinPrep(key:String, value:String): String ={
 	val val_arr = value.split(", ")
 	if(val_arr(0) == "input"){
-		return "%s, 0, 1".format(val_arr(2))
+		return "%s, 0, 1".format(val_arr(3))
 	}
 	else{
-		return "0, %s, 1".format(val_arr(2))
+		return "0, %s, 1".format(val_arr(3))
 	}
 }
 
