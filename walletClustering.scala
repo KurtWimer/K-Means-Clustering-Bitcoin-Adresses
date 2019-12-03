@@ -1,3 +1,5 @@
+import org.apache.spark.sql.SparkSession
+
 object walletClustering{
 	def main(args: Array[String]): Unit = {
 		/*data = open file from s3 load into rdd*/
