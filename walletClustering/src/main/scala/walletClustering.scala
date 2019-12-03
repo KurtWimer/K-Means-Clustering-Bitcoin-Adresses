@@ -53,7 +53,7 @@ def shiftFunc{
 			tempValues += neighbor.value[i] * wieght
 		}
 	}
-}
+}*/
 
 def guassianKernalFunc{
 	use already built kernals from mlib
@@ -63,5 +63,5 @@ def guassianKernalFunc{
 def notClustered{
 	what do we need for this old and new point locations
 	can we pull out points that have stopped moving?
-}*/
+}
 }
