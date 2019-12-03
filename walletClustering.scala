@@ -58,10 +58,14 @@ def shiftFunc{
 def guassianKernalFunc{
 	use already built kernals from mlib
 	https://spark.apache.org/docs/2.2.1/api/java/org/apache/spark/mllib/stat/KernelDensity.html
-}
-
-def notClustered{
-	what do we need for this old and new point locations
-	can we pull out points that have stopped moving?
 }*/
+        def notClustered(old:Array[Double], current:Array[Double]): Boolean ={
+                for(w <- 0 to 2){
+                        if(old(w) != current(w)){
+                                return false
+                	}
+        	}
+        	return true
+	}
+
 }
