@@ -1,8 +1,13 @@
 object walletClustering{
 	def main(args: Array[String]): Unit = {
-		/*data = open file from s3 load into rdd
-		pairData = data.split(", ") key = address (3rd item)
-		pairData.mapValues(joinPrep).reduceByKey(joinFunc)
+		/*data = open file from s3 load into rdd*/
+		
+		val chainFile = args(0)
+    		val spark = SparkSession.builder.appName("BlockChain Work").getOrCreate()
+    		import spark.implicits._
+   		val chainData = spark.read.textFile(chainFile).map(s => (s.split(", ")(2), s)).cache()
+		
+		/*pairData.mapValues(joinPrep).reduceByKey(joinFunc)
 		depending upon how much this reduces we may want to write pairData out to s3 and split the program here
 
 		while(not clustered){
