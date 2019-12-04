@@ -8,14 +8,10 @@ object walletClustering{
 	def main(args: Array[String]): Unit = {
 		/*data = open file from s3 load into rdd
 		pairData = data.split(", ") key = address (3rd item)
-		pairData.
+		pairData.mapValues(joinPrep).reduceByKey(joinFunc)
 		depending upon how much this reduces we may want to write pairData out to s3 and split the program here
 
 		while(not clustered){
-			//get distances from each point to each point
-			points.cartesian(points).map(distances)
-			//generate kernal from distances
-
 			//apply shift based upon kernal
 		}
 
@@ -45,35 +41,43 @@ def joinFunc(accum:Array[Double], value:Array[Double]): Array[Double] ={
 
 //input cartestian product of points and point values
 //output key, val = (distance, point = arr[dbl])
-def distances(value:((String, Array[Double]), Array[Double])): (String, Array[Array[Double], Array[Double])={
-	val source = value._0._1
-	val target = value._1
+def distances(value:((String, Array[Double]), Array[Double])): (String, (Double, Array[Double]))={
+	val source = value._1._2
+	val target = value._2
 	val dist = scala.math.sqrt(source.zip(target).map{ case (x, y) => scala.math.pow(y-x, 2)}.sum)
-	return (value._0._0, (dist, target))
+	return (value._1._1, (dist, target))
 }
 
 //inputs point [inputTotal, outputTotal, numTransactions], RDD original points
 //ouputs point [inputTotal, outputTotal, numTransactions]
 def shiftFunc(val:Array[((String, Array[Double]), Array[Double])], kernal:KernelDensity): Array[Double]={
-	//find neighbors with euclidean distance
-	val threshold = 10
-	//neighbors is key distance value arr[dbl]
-	val neighbors = points.map{point => (distance(point, p), point)}
+	
+	val neighbors = points.cartesian(points.values).map{distances}.filter(v => v._2._1 < threshold)
+	val guassians = neighbors.mapValues(kernelFunc)
+	val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
+	val shifts = guassians.join(kernels).mapValues(v => v._1._2.map{_*(v._1._1/v._2)})
+	//generate kernal from distances
+	val bandwidth = 1.0
 
-	//.flatMap{case(distance, value) => if(distance < threshold) (distance, value)}
-	//create kernal from samples
-	//todo is kernal from distances?
-	val kernel = new KernelDensity().setSample(neighbors.keys}).setBandwidth(1.0)
-	val adjusted = neighbors.map{case(key, value) => (v, value.zip(kernelFunc(Array(key), kernel)).map{case(x, y) => x*y})}
+
+	val adjusted = 
 	return adjusted
 }
 
-def kernelFunc(distance:Array[Double], kernal:KernelDensity): Array[Double]={
-	kernal.estimate(distance)
+
+//input key, values distance array points
+//output key, values gaussian point
+def kernelFunc(value:(Double, Array[Double])): (Double, Array[Double])={
+	//gaussian function
+	val distance = value._1
+	val target = value._2
+	val bandwith = 5.0
+	val gaussian = 1/scala.math.pow((2*scala.math.Pi)*bandwith, .5) * scala.math.exp(-.5*scala.math.pow(distance,2)/scala.math.pow(bandwith, 2))
+	return (gaussian, value._2)
 }
 
-def distance(source:Array[Double], target:Array[Double]): Double ={
-	return 
+def kernelReduce(accum:Double, target:Double): Double={
+	return accum + target
 }
 
 /*
