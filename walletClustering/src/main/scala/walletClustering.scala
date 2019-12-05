@@ -20,10 +20,13 @@ object walletClustering{
 		for(i <- 0 to args(2).toInt){
 			val neighbors = data.cartesian(data.values).map{distances}.filter(v => v._2._1 < threshold)
 			val guassians = neighbors.mapValues(kernelFunc)
+			guassians.cache()
+			data.unpersist()
 			val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
 			val adjusted = guassians.mapValues(v => v._2.map{_*v._1}).reduceByKey(shiftReduce).join(kernels).mapValues{case (arr, weight) => arr.map{_/weight}}
 			data = adjusted
 			data.cache()
+			guassians.unpersist()
 		}
 
 		/*
