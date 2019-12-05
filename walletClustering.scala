@@ -51,37 +51,32 @@ def distances(value:((String, Array[Double]), Array[Double])): (String, (Double,
 	return (value._1._1, (dist, target))
 }
 
-//inputs point [inputTotal, outputTotal, numTransactions], RDD original points
-//ouputs point [inputTotal, outputTotal, numTransactions]
-def shiftFunc(val:Array[((String, Array[Double]), Array[Double])], kernal:KernelDensity): Array[Double]={
-	
-	
- 
-	return adjusted
-}
-
-
 //input key, values distance array points
 //output key, values gaussian point
-def kernelFunc(value:(Double, Array[Double])): (Double, Array[Double])={
-	//gaussian function
-	val distance = value._1
-	val target = value._2
-	val bandwith = 5.0
-	val gaussian = 1/scala.math.pow((2*scala.math.Pi)*bandwith, .5) * scala.math.exp(-.5*scala.math.pow(distance,2)/scala.math.pow(bandwith, 2))
-	return (gaussian, value._2)
-}
+  def kernelFunc(value:(Double, Array[Double])): (Double, Array[Double])={
+	  //gaussian function
+	  val distance = value._1
+	  val target = value._2
+	  val bandwith = 5.0
+	  val gaussian = 1/scala.math.pow((2*scala.math.Pi)*bandwith, .5) * scala.math.exp(-.5*scala.math.pow(distance,2)/scala.math.pow(bandwith, 2))
+	  return (gaussian, value._2)
+  }
 
-def kernelReduce(accum:Double, target:Double): Double={
-	return accum + target
-}
+  def kernelReduce(accum:Double, target:Double): Double={
+	  return accum + target
+  }
 
-def shiftReduce(accum:Array[Double], target:Array[Double]): Array[Double]={
-	return accum.zip(target).map{case (x, y) => x+y}
-}
+  def shiftReduce(accum:Array[Double], target:Array[Double]): Array[Double]={
+	  return accum.zip(target).map{case (x, y) => x+y}
+  }
 
-/*
-def notClustered{
-	what do we need for this old and new point locations
-	can we pull out points that have stopped moving?
-}*/
+  def notClustered(old:Array[Double], current:Array[Double]): Boolean ={
+    for(w <- 0 to 2){
+      if(old(w) != current(w)){
+        return false
+      }
+    }
+    return true
+  }
+
+}
