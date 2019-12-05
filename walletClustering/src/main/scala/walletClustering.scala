@@ -29,6 +29,7 @@ object walletClustering{
 			guassians.unpersist()
 		}
 
+		data.saveAsTextFile("hdfs:///"+args(2))
 		/*
 		write clusters to file
 		write key pair adress and cluster to file
