@@ -10,11 +10,14 @@ object walletClustering{
 		pairData = data.split(", ") key = address (3rd item)
 		pairData.mapValues(joinPrep).reduceByKey(joinFunc)
 		depending upon how much this reduces we may want to write pairData out to s3 and split the program here
-
+		*/
 		while(not clustered){
-			//apply shift based upon kernal
+			val neighbors = points.cartesian(points.values).map{distances}.filter(v => v._2._1 < threshold)
+			val guassians = neighbors.mapValues(kernelFunc)
+			val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
+			val adjusted = guassians.mapValues(v => v._2.map{_*v._1}).reduceByKey(shiftReduce).join(kernels).mapValues{case (arr, weight) => arr.map{_/weight}}
 		}
-
+		/*
 		write clusters to file
 		write key pair adress and cluster to file
 		*/
@@ -52,15 +55,8 @@ def distances(value:((String, Array[Double]), Array[Double])): (String, (Double,
 //ouputs point [inputTotal, outputTotal, numTransactions]
 def shiftFunc(val:Array[((String, Array[Double]), Array[Double])], kernal:KernelDensity): Array[Double]={
 	
-	val neighbors = points.cartesian(points.values).map{distances}.filter(v => v._2._1 < threshold)
-	val guassians = neighbors.mapValues(kernelFunc)
-	val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
-	val shifts = guassians.join(kernels).mapValues(v => v._1._2.map{_*(v._1._1/v._2)})
-	//generate kernal from distances
-	val bandwidth = 1.0
-
-
-	val adjusted = 
+	
+ 
 	return adjusted
 }
 
@@ -78,6 +74,10 @@ def kernelFunc(value:(Double, Array[Double])): (Double, Array[Double])={
 
 def kernelReduce(accum:Double, target:Double): Double={
 	return accum + target
+}
+
+def shiftReduce(accum:Array[Double], target:Array[Double]): Array[Double]={
+	return accum.zip(target).map{case (x, y) => x+y}
 }
 
 /*
