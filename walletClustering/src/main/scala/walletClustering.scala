@@ -16,7 +16,7 @@ object walletClustering{
    		val sc = new SparkContext(conf)
 		var data = sc.textFile("hdfs:///"+args(0),100).map{v => (v.split(", ")(3).substring(2,v.split(", ")(3).length-2), v)}.mapValues(joinPrep _).reduceByKey(joinFunc _)
 		val threshold = 10.0
-		for(i <- 0 to args(3).toInt){
+		for(i <- 0 to args(2).toInt){
 			val neighbors = data.cartesian(data.values).map{distances}.filter(v => v._2._1 < threshold)
 			val guassians = neighbors.mapValues(kernelFunc)
 			val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
