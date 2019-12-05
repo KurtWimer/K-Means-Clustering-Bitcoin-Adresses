@@ -22,36 +22,35 @@ object walletClustering{
 		write key pair adress and cluster to file
 		*/
 	}
-}
 
-//inputs either "input"/"output", timestamp, val
-//returns out key = key, value = inputTotal, ouputTotal, numTransactions
-def joinPrep(value:String): Array[Double] ={
-	val val_arr = value.split(", ")
-	if(val_arr(0) == "input"){
-		return Array(val_arr(2).toDouble, 0, 1)
+	//inputs either "input"/"output", timestamp, val
+	//returns out key = key, value = inputTotal, ouputTotal, numTransactions
+	def joinPrep(value:String): Array[Double] ={
+		val val_arr = value.split(", ")
+		if(val_arr(0) == "input"){
+			return Array(val_arr(2).toDouble, 0, 1)
+		}
+		else{
+			return Array(0, val_arr(2).toDouble, 1)
+		}
 	}
-	else{
-		return Array(0, val_arr(2).toDouble, 1)
+
+	//inputs key = key, value = inputTotal, ouputTotal, numTransactions
+	//returns out key = key, value = inputTotal, ouputTotal, numTransactions
+	def joinFunc(accum:Array[Double], value:Array[Double]): Array[Double] ={
+		return accum.zip(value).map{case (x,y) => x+y}
 	}
-}
 
-//inputs key = key, value = inputTotal, ouputTotal, numTransactions
-//returns out key = key, value = inputTotal, ouputTotal, numTransactions
-def joinFunc(accum:Array[Double], value:Array[Double]): Array[Double] ={
-	return accum.zip(value).map{case (x,y) => x+y}
-}
+	//input cartestian product of points and point values
+	//output key, val = (distance, point = arr[dbl])
+	def distances(value:((String, Array[Double]), Array[Double])): (String, (Double, Array[Double]))={
+		val source = value._1._2
+		val target = value._2
+		val dist = scala.math.sqrt(source.zip(target).map{ case (x, y) => scala.math.pow(y-x, 2)}.sum)
+		return (value._1._1, (dist, target))
+	}
 
-//input cartestian product of points and point values
-//output key, val = (distance, point = arr[dbl])
-def distances(value:((String, Array[Double]), Array[Double])): (String, (Double, Array[Double]))={
-	val source = value._1._2
-	val target = value._2
-	val dist = scala.math.sqrt(source.zip(target).map{ case (x, y) => scala.math.pow(y-x, 2)}.sum)
-	return (value._1._1, (dist, target))
-}
-
-//input key, values distance array points
+	//input key, values distance array points
 //output key, values gaussian point
   def kernelFunc(value:(Double, Array[Double])): (Double, Array[Double])={
 	  //gaussian function
