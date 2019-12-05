@@ -1,5 +1,6 @@
-import org.apache.spark.mllib.stat.KernelDensity
 import org.apache.spark.rdd.RDD
+import org.apache.spark
+import org.apache.spark.{SparkConf, SparkContext}
 
 //small test String
 //val x = sc.parallelize(Array(("a", "input, 12:00:00, 1"),("a", "output, 12:01:01, 2"),("b", "input, 12:00:32, 3")))
@@ -13,9 +14,9 @@ object walletClustering{
 		*/
 		val conf = new SparkConf().setAppName("Wallet Clustering")
    		val sc = new SparkContext(conf)
-		var data = sc.textFile("hdfs:///"+args(0),100).map{v => v.split(", ")(3).substring(2,s.length-2), v}.mapValues(joinPrep).reduceByKey(joinFunc)
-
-		for(i <- 0 to args[3]){
+		var data = sc.textFile("hdfs:///"+args(0),100).map{v => (v.split(", ")(3).substring(2,v.split(", ")(3).length-2), v)}.mapValues(joinPrep _).reduceByKey(joinFunc _)
+		val threshold = 10.0
+		for(i <- 0 to args(3).toInt){
 			val neighbors = data.cartesian(data.values).map{distances}.filter(v => v._2._1 < threshold)
 			val guassians = neighbors.mapValues(kernelFunc)
 			val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
