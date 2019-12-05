@@ -14,13 +14,13 @@ object walletClustering{
 		*/
 		val conf = new SparkConf().setAppName("Wallet Clustering")
    		val sc = new SparkContext(conf)
-		var data = sc.textFile("hdfs:///"+args(0),100).map{v => (v.split(", ")(3).substring(2,v.split(", ")(3).length-2), v)}.mapValues(joinPrep _).reduceByKey(joinFunc _)
+		var data = sc.textFile("hdfs:///"+args(0),100).map{v => (v.split(", ")(2).substring(2,v.split(", ")(2).length-2), v)}.mapValues(joinPrep _).reduceByKey(joinFunc _)
 		data.cache()
 		val threshold = 10.0
 		for(i <- 0 to args(2).toInt){
 			val neighbors = data.cartesian(data.values).map{distances}.filter(v => v._2._1 < threshold)
 			val guassians = neighbors.mapValues(kernelFunc)
-			guassians.cache()
+			guassians.repartition(100).cache()
 			data.unpersist()
 			val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
 			val adjusted = guassians.mapValues(v => v._2.map{_*v._1}).reduceByKey(shiftReduce).join(kernels).mapValues{case (arr, weight) => arr.map{_/weight}}
