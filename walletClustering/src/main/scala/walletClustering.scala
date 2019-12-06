@@ -96,4 +96,13 @@ object walletClustering{
 	def shiftReduce(accum:Array[Double], target:Array[Double]): Array[Double]={
 		return accum.zip(target).map{case (x, y) => x+y}
 	}
+
+	def notClustered(old:Array[Double], current:Array[Double]): Boolean ={
+	for(w <- 0 to 2){
+		if(old(w) != current(w)){
+		return false
+		}
+	}
+	return true
+	}
 }
