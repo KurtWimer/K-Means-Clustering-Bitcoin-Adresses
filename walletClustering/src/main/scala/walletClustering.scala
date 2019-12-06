@@ -13,7 +13,7 @@ object walletClustering{
 		depending upon how much this reduces we may want to write pairData out to s3 and split the program here
 		*/
 		val threshold = 10.0
-		val iterations = args(2)
+		val iterations = args(2).toInt
 		val conf = new SparkConf().setAppName("Wallet Clustering")
    		val sc = new SparkContext(conf)
 
@@ -33,6 +33,11 @@ object walletClustering{
 		}
 
 		data.mapValues{v => v.mkString(", ")}.saveAsTextFile("hdfs:///"+args(2))
+		
+		val exchangeWallets = sc.textFile("hdfs:///"+args(3)).map{w => w.split(",")(1)}
+                val poolWallets = sc.textFile("hdfs:///"+args(4)).map{w => w.split(",")(1)}
+                val serviceWallets = sc.textFile("hdfs:///"+args(5)).map{w => w.split(",")(1)}
+                val gamblingWallets = sc.textFile("hdfs:///"+args(6)).map{w => w.split(",")(1)}
 	}
 
 	//inputs either "input"/"output", timestamp, address, val
