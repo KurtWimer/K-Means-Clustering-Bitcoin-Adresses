@@ -7,37 +7,48 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object walletClustering{
 	def main(args: Array[String]): Unit = {
-		/*data = open file from s3 load into rdd
-		pairData = data.split(", ") key = address (3rd item)
-		pairData.mapValues(joinPrep).reduceByKey(joinFunc)
-		depending upon how much this reduces we may want to write pairData out to s3 and split the program here
-		*/
+		//paramater variables
 		val threshold = 10.0
 		val iterations = args(2).toInt
+
+		//start spark application
 		val conf = new SparkConf().setAppName("Wallet Clustering")
    		val sc = new SparkContext(conf)
 
+   		//read data in and generate wallet information
+   		//data rdd key = String(adress) values = Arr[Double] [inputTotal, outputTotal, numTransactions]
 		var data = sc.textFile("hdfs:///"+args(0),100).map{v => (v.split(", ")(2).substring(2,v.split(", ")(2).length-2), v)}.mapValues(joinPrep _).reduceByKey(joinFunc _)
+		//cache for efficiency
 		data.cache()
 		
 		for(i <- 0 to iterations){
+			//find neighbors as defined by having a euclidean distance of < threshold
 			val neighbors = data.cartesian(data.values).map{distances}.filter(v => v._2._1 < threshold)
+			//generate guassian values for each point pairing
+			//guassians rdd key = adress value (guassian, pointValues)
 			val guassians = neighbors.mapValues(kernelFunc)
+			//cache the expensive cartesian operation and clear memory 
 			guassians.repartition(100).cache()
 			data.unpersist()
+			//collect guassians so that each point has a kernel
 			val kernels = guassians.mapValues(v => v._1).reduceByKey(kernelReduce)
+			//shift the points
 			val adjusted = guassians.mapValues(v => v._2.map{_*v._1}).reduceByKey(shiftReduce).join(kernels).mapValues{case (arr, weight) => arr.map{_/weight}}
 			data = adjusted
+			//cache output and clear memory
 			data.cache()
 			guassians.unpersist()
 		}
 
+		//output cluster data
 		data.mapValues{v => v.mkString(", ")}.saveAsTextFile("hdfs:///"+args(2))
-		
+
+		//known wallet adresses for verification purposes		
 		val exchangeWallets = sc.textFile("hdfs:///"+args(3)).map{w => w.split(",")(1)}
-                val poolWallets = sc.textFile("hdfs:///"+args(4)).map{w => w.split(",")(1)}
-                val serviceWallets = sc.textFile("hdfs:///"+args(5)).map{w => w.split(",")(1)}
-                val gamblingWallets = sc.textFile("hdfs:///"+args(6)).map{w => w.split(",")(1)}
+        val poolWallets = sc.textFile("hdfs:///"+args(4)).map{w => w.split(",")(1)}
+        val serviceWallets = sc.textFile("hdfs:///"+args(5)).map{w => w.split(",")(1)}
+        val gamblingWallets = sc.textFile("hdfs:///"+args(6)).map{w => w.split(",")(1)}
+        //verification not implemented
 	}
 
 	//inputs either "input"/"output", timestamp, address, val
