@@ -29,7 +29,7 @@ def get_month(year, month):
     else:
          month2 = str(month2)
 
-    #create and submit query
+    #create and submit queries
     QUERY = "SELECT * FROM `bigquery-public-data.crypto_bitcoin.transactions` WHERE block_timestamp BETWEEN '{}-01-{}' AND '{}-11-{}'".format(year, month,year2,month2)
     query_job = client.query(QUERY, job_config = config)  # API request
     rows = query_job.result()  # Waits for query to finish
@@ -82,4 +82,4 @@ if __name__ == "__main__":
 
 #final file format is
 #input/output, timestamp, address, value
-#value is in satoshi's?
+#value is in satoshi's
