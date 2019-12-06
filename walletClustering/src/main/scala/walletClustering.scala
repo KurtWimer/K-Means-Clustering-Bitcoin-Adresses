@@ -12,12 +12,15 @@ object walletClustering{
 		pairData.mapValues(joinPrep).reduceByKey(joinFunc)
 		depending upon how much this reduces we may want to write pairData out to s3 and split the program here
 		*/
+		val threshold = 10.0
+		val iterations = args(2)
 		val conf = new SparkConf().setAppName("Wallet Clustering")
    		val sc = new SparkContext(conf)
+
 		var data = sc.textFile("hdfs:///"+args(0),100).map{v => (v.split(", ")(2).substring(2,v.split(", ")(2).length-2), v)}.mapValues(joinPrep _).reduceByKey(joinFunc _)
 		data.cache()
-		val threshold = 10.0
-		for(i <- 0 to args(2).toInt){
+		
+		for(i <- 0 to iterations){
 			val neighbors = data.cartesian(data.values).map{distances}.filter(v => v._2._1 < threshold)
 			val guassians = neighbors.mapValues(kernelFunc)
 			guassians.repartition(100).cache()
@@ -29,11 +32,7 @@ object walletClustering{
 			guassians.unpersist()
 		}
 
-		data.saveAsTextFile("hdfs:///"+args(2))
-		/*
-		write clusters to file
-		write key pair adress and cluster to file
-		*/
+		data.mapValues{v => v.mkString(", ")}.saveAsTextFile("hdfs:///"+args(2))
 	}
 
 	//inputs either "input"/"output", timestamp, address, val
@@ -80,14 +79,5 @@ object walletClustering{
 
 	def shiftReduce(accum:Array[Double], target:Array[Double]): Array[Double]={
 		return accum.zip(target).map{case (x, y) => x+y}
-	}
-
-	def notClustered(old:Array[Double], current:Array[Double]): Boolean ={
-	for(w <- 0 to 2){
-		if(old(w) != current(w)){
-		return false
-		}
-	}
-	return true
 	}
 }
