@@ -45,10 +45,10 @@ object walletClustering{
 
 		//known wallet adresses for verification purposes		
 		val exchangeWallets = sc.textFile("hdfs:///"+args(3)).map{w => w.split(",")(1)}
-        val poolWallets = sc.textFile("hdfs:///"+args(4)).map{w => w.split(",")(1)}
-        val serviceWallets = sc.textFile("hdfs:///"+args(5)).map{w => w.split(",")(1)}
-        val gamblingWallets = sc.textFile("hdfs:///"+args(6)).map{w => w.split(",")(1)}
-        //verification not implemented
+        	val poolWallets = sc.textFile("hdfs:///"+args(4)).map{w => w.split(",")(1)}
+        	val serviceWallets = sc.textFile("hdfs:///"+args(5)).map{w => w.split(",")(1)}
+        	val gamblingWallets = sc.textFile("hdfs:///"+args(6)).map{w => w.split(",")(1)}
+        	//verification not implemented
 	}
 
 	//inputs either "input"/"output", timestamp, address, val
@@ -98,11 +98,11 @@ object walletClustering{
 	}
 
 	def notClustered(old:Array[Double], current:Array[Double]): Boolean ={
-	for(w <- 0 to 2){
-		if(old(w) != current(w)){
-		return false
+		for(w <- 0 to 2){
+			if(old(w) != current(w)){
+			return false
+			}
 		}
-	}
-	return true
+		return true
 	}
 }
